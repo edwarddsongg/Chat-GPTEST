@@ -26,7 +26,7 @@ function inputBox (): Thenable<string | undefined> {
 export function activate(context: vscode.ExtensionContext) {
 	const testCommand =  "chatgptest.test";
 	const activeEditorCommand = "chatgptest.activeEditor";	
-	
+	const activeTextEditor = vscode.window.activeTextEditor;
 
 	const testCommandHandler = (name: string = "world") => {
 		console.log("Test command running");
@@ -41,6 +41,10 @@ export function activate(context: vscode.ExtensionContext) {
 			inputBox().then(userSelection => {
 				if(userSelection === "Yes") {
 					console.log("yes");
+					if(activeEditor && activeTextEditor) {
+						console.log(activeTextEditor.document.getText());
+					}
+					
 				} else {
 					console.log("no");
 				}

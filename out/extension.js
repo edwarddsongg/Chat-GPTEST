@@ -48,6 +48,7 @@ function inputBox() {
 function activate(context) {
     const testCommand = "chatgptest.test";
     const activeEditorCommand = "chatgptest.activeEditor";
+    const activeTextEditor = vscode.window.activeTextEditor;
     const testCommandHandler = (name = "world") => {
         console.log("Test command running");
     };
@@ -60,6 +61,9 @@ function activate(context) {
             inputBox().then(userSelection => {
                 if (userSelection === "Yes") {
                     console.log("yes");
+                    if (activeEditor && activeTextEditor) {
+                        console.log(activeTextEditor.document.getText());
+                    }
                 }
                 else {
                     console.log("no");
