@@ -22,11 +22,17 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = __importStar(require("vscode"));
+const axios_1 = __importDefault(require("axios"));
+const dotenv = __importStar(require("dotenv"));
+dotenv.config();
 function getActiveEditor() {
     const activeTextEditor = vscode.window.activeTextEditor;
     if (activeTextEditor) {
@@ -45,6 +51,35 @@ function inputBox() {
         placeHolder: "Would you like to generate unit tests for this file",
     }).then(selected => selected ? selected.label : undefined);
 }
+async function generateAPITest(language, code) {
+    const apiKey = process.env.CHAT_GPT_API_KEY;
+    const apiUrl = "https://api.openai.com/v1/chat/completions";
+    console.log("Apiskey:", apiKey);
+    const headers = {
+        "Content-type": "application/json",
+        "Authorization": "Bearer ${apiKey}",
+    };
+    language = "Javascript";
+    const input = "You are a programer and you need to write unit tests for this code using the language ${language}. Make sure to thoroughly test all conditions with this code: \n\n${code}";
+    try {
+        const response = await axios_1.default.post(apiUrl, {
+            prompt: input,
+            temperature: 0.8,
+        }, {
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer ${apiKey}",
+            },
+        });
+        const unitTests = response.data.choices[0].text.trim();
+        return unitTests;
+    }
+    catch (error) {
+        console.error("Error making API call:", error.message);
+        console.log("Apikey:", apiKey);
+        throw error;
+    }
+}
 function activate(context) {
     const testCommand = "chatgptest.test";
     const activeEditorCommand = "chatgptest.activeEditor";
@@ -59,14 +94,19 @@ function activate(context) {
         }
         else {
             inputBox().then(userSelection => {
-                if (userSelection === "Yes") {
-                    console.log("yes");
-                    if (activeEditor && activeTextEditor) {
-                        console.log(activeTextEditor.document.getText());
-                    }
+                if (userSelection === undefined) {
+                    console.log("The user did not make a selection");
+                }
+                else if (activeTextEditor === undefined) {
+                    console.log("There currently is no active editor.");
                 }
                 else {
-                    console.log("no");
+                    generateAPITest(userSelection, activeTextEditor.document.getText()).then((response) => {
+                        console.log("Generated unit tests:\n", response);
+                    })
+                        .catch((error) => {
+                        console.error("Error:", error.message);
+                    });
                 }
             });
         }
