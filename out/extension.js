@@ -32,7 +32,7 @@ exports.deactivate = exports.activate = void 0;
 const vscode = __importStar(require("vscode"));
 const axios_1 = __importDefault(require("axios"));
 const dotenv = __importStar(require("dotenv"));
-dotenv.config();
+dotenv.config({ path: '/Users/edwardsong/Documents/CHAT-GPTEST/.env' });
 function getActiveEditor() {
     const activeTextEditor = vscode.window.activeTextEditor;
     if (activeTextEditor) {
@@ -60,28 +60,38 @@ async function generateAPITest(language, code) {
         "Authorization": "Bearer ${apiKey}",
     };
     language = "Javascript";
-    const input = "You are a programer and you need to write unit tests for this code using the language ${language}. Make sure to thoroughly test all conditions with this code: \n\n${code}";
+    const input = `You are a programer and you need to write unit tests for this code using the language ${language}. Make sure to thoroughly test all conditions with this code.`;
     try {
-        const response = await axios_1.default.post(apiUrl, {
-            prompt: input,
-            temperature: 0.8,
-        }, {
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer ${apiKey}",
-            },
-        });
-        const unitTests = response.data.choices[0].text.trim();
-        return unitTests;
+        const messages = [
+            { role: 'system', content: 'You are a helpful assistant that generates unit tests for code.' },
+            { role: 'user', content: 'Generate unit tests for the following JavaScript function:' },
+            { role: 'assistant', content: code },
+            { role: 'user', content: 'I need tests to cover different cases.' },
+        ];
+        // Define the data for the API request
+        const requestData = {
+            messages,
+            max_tokens: 150,
+            model: "gpt-3.5-turbo-1106"
+        };
+        // Define the headers with your API key
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+        };
+        // Make the API request using Axios
+        const response = await axios_1.default.post(apiUrl, requestData, { headers });
+        // Return the generated unit tests
+        return response.data.choices[0].message.content.trim();
     }
     catch (error) {
-        console.error("Error making API call:", error.message);
-        console.log("Apikey:", apiKey);
-        throw error;
+        console.error('API Error:', error.response ? error.response.data : error.message);
+        throw new Error('Error generating unit tests.');
     }
 }
 function activate(context) {
     const testCommand = "chatgptest.test";
+    console.log("TEST", process.env);
     const activeEditorCommand = "chatgptest.activeEditor";
     const activeTextEditor = vscode.window.activeTextEditor;
     const testCommandHandler = (name = "world") => {
@@ -112,6 +122,7 @@ function activate(context) {
         }
     };
     let disposable = vscode.commands.registerCommand('chatgptest.helloWorld', () => {
+        console.log("TEST", process.env);
         vscode.window.showInformationMessage('Hello World from chat-gptest!');
     });
     context.subscriptions.push(disposable);
