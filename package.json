@@ -24,6 +24,10 @@
       {
         "command": "chatgptest.activeEditor",
         "title": "Get active editor"
+      },
+      {
+        "command": "chatgptest.executePythonTests",
+        "title": "Execute Python Tests"
       }
     ]
 	},

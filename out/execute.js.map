@@ -1,0 +1,1 @@
+{"version":3,"file":"execute.js","sourceRoot":"","sources":["../src/execute.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;AAAA,+CAAiC;AAEjC,SAAS,kBAAkB;IACvB,MAAM,CAAC,MAAM,CAAC,sBAAsB,CAAC,iBAAiB,CAAC,CAAC;AAC5D,CAAC;AAED,MAAM,UAAU,GAAG,MAAM,CAAC,QAAQ,CAAC,eAAe,CAAC,+BAA+B,EAAE,kBAAkB,CAAC,CAAC;AAExG,kBAAe,UAAU,CAAC"}
