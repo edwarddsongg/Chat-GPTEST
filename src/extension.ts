@@ -11,6 +11,7 @@ import { match } from 'assert';
 import execute from "./execute";
 import { exec } from 'child_process';
 /// <reference path="./globals.d.ts" />
+import { activate as highlightedCodeRunnerActivate, deactivate as highlightedCodeRunnerDeactivate } from './highlight';
 
 
 dotenv.config({ path: '/Users/edwardsong/Documents/CHAT-GPTEST/.env'  });
@@ -130,6 +131,7 @@ async function generateAPITest(language: string, code: string): Promise<string> 
 }
 
 export function activate(context: vscode.ExtensionContext) {
+	highlightedCodeRunnerActivate(context);
 	const testCommand =  "chatgptest.test";
 	console.log("TEST", process.env);
 	const activeEditorCommand = "chatgptest.activeEditor";	
@@ -235,4 +237,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+	highlightedCodeRunnerDeactivate();
+}

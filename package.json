@@ -15,41 +15,12 @@
 		"color": "#C80000",
 		"theme": "dark"
 	},
-	"activationEvents": [],
+	"activationEvents": [
+		"onCommand:chatgptest.activeEditor",
+		"onCommand:chatgptest.followTest"
+	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"walkthroughs": [
-			{
-				"id": "sample",
-				"title": "Sample",
-				"description": "A sample walkthrough",
-				"steps": [
-					{
-						"id": "runcommand",
-						"title": "Run Command",
-						"description": "This step will run a command and check off once it has been run.\n[Run Command](command:getting-started-sample.runCommand)",
-						"media": {
-							"image": "media/image.png",
-							"altText": "Empty image"
-						},
-						"completionEvents": [
-							"onCommand:getting-started-sample.runCommand"
-						]
-					},
-					{
-						"id": "changesetting",
-						"title": "Change Setting",
-						"description": "This step will change a setting and check off when the setting has changed\n[Change Setting](command:getting-started-sample.changeSetting)",
-						"media": {
-							"markdown": "media/markdown.md"
-						},
-						"completionEvents": [
-							"onSettingChanged:getting-started-sample.sampleSetting"
-						]
-					}
-				]
-			}
-		],
 		"viewsContainers": {
 			"activitybar": [
 				{
@@ -96,8 +67,26 @@
 			{
 				"command": "chatgptest.showWelcome",
 				"title": "Show Welcome Page"
+			},
+			{
+				"command": "chatgptest.followTest",
+				"title": "Generate tests for instructions"
 			}
-		]
+		],
+		"menus": {
+			"editor/title": [
+				{
+                    "command": "chatgptest.activeEditor",
+                    "group": "bookmarks",
+                    "when": "editorTextFocus && config.bookmarks.showCommandsInContextMenu"
+                },
+                {
+                    "command": "chatgptest.followTest",
+                    "group": "bookmarks@1",
+                    "when": "editorTextFocus && config.bookmarks.showCommandsInContextMenu"
+                }
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
