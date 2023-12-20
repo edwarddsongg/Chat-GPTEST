@@ -22,11 +22,50 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode = __importStar(require("vscode"));
+const cp = __importStar(require("child_process"));
+const welcomePage_1 = __importDefault(require("./welcomePage"));
+function getPythonFilePath() {
+    const editor = vscode.window.activeTextEditor;
+    if (editor && editor.document.languageId === "python") {
+        const filepath = editor.document.fileName;
+        return filepath;
+    }
+    return undefined;
+}
 function executePythonTests() {
-    vscode.window.showInformationMessage("Executing tests");
+    return __awaiter(this, void 0, void 0, function* () {
+        const pythonExec = "python";
+        const filepath = getPythonFilePath();
+        if (filepath !== undefined) {
+            cp.exec(`${pythonExec} "${filepath}"`, (error, stdout, stderr) => {
+                var _a;
+                const editor = (_a = vscode.window.activeTextEditor) === null || _a === void 0 ? void 0 : _a.document.uri;
+                if (editor) {
+                    welcomePage_1.default.showWelcome(editor, stderr);
+                }
+                else {
+                    vscode.window.showErrorMessage("There is no active editor.");
+                }
+            });
+        }
+        else {
+            console.log("Undefined filepath");
+        }
+    });
 }
 const disposable = vscode.commands.registerCommand("chatgptest.executePythonTests", executePythonTests);
 exports.default = disposable;
-//# sourceMappingURL=execute.js.map
