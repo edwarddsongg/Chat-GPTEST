@@ -1,4 +1,6 @@
 "use strict";
+// The module 'vscode' contains the VS Code extensibility API
+// Import the module and reference it with the alias vscode in your code below
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -22,20 +24,31 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deactivate = exports.activate = void 0;
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+exports.deactivate = exports.activate = exports.globalTestMap = void 0;
+/// <reference path="./globals.d.ts" />
 const vscode = __importStar(require("vscode"));
 const axios_1 = __importDefault(require("axios"));
 const dotenv = __importStar(require("dotenv"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const execute_1 = __importDefault(require("./execute"));
+/// <reference path="./globals.d.ts" />
 dotenv.config({ path: '/Users/edwardsong/Documents/CHAT-GPTEST/.env' });
+exports.globalTestMap = new Map();
+// Initialize the Map
 function getActiveEditor() {
     const activeTextEditor = vscode.window.activeTextEditor;
     if (activeTextEditor) {
@@ -44,6 +57,30 @@ function getActiveEditor() {
     else {
         return;
     }
+}
+function inputFile() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const value = yield vscode.window.showInputBox({
+                prompt: 'Enter your file name',
+                placeHolder: 'e.g., tests.py'
+            });
+            // Handle the input value
+            if (value) {
+                console.log(`You entered: ${value}`);
+                return value;
+            }
+            else {
+                console.log("You must type a filename");
+                vscode.window.showErrorMessage("No filename");
+                throw new Error("No filename");
+            }
+        }
+        catch (error) {
+            console.error(error);
+            return undefined;
+        }
+    });
 }
 function inputBox() {
     const items = [
@@ -65,48 +102,52 @@ function inputBox() {
         placeHolder: "Which language do you want to develop the tests in?",
     }).then(selected => selected ? selected.label : undefined);
 }
-async function generateAPITest(language, code) {
-    const apiKey = process.env.CHAT_GPT_API_KEY;
-    const apiUrl = "https://api.openai.com/v1/chat/completions";
-    const headers = {
-        "Content-type": "application/json",
-        "Authorization": "Bearer ${apiKey}",
-    };
-    try {
-        const curEditor = vscode.window.activeTextEditor;
-        if (curEditor) {
-            const messages = [
-                { role: 'system', content: `You are a helpful assistant that generates unit tests for code using ${language}. Make sure to only output code and any text should be documented inside the code.` },
-                { role: 'user', content: 'Generate unit tests for the following ${language}. Do not give any text around the code:' },
-                { role: 'assistant', content: code },
-                { role: 'user', content: `On the first line, specify the file name as tests. and add the corresponding file type to ${language} I need tests to cover different cases. Make sure for each language you do the correct imports.
-				The test file will be in the same directory as the current file. Give documentation for each test case. Include a main that calls on this test suite. This is the file path ${curEditor.document.uri.fsPath}` },
-            ];
-            // Define the data for the API request
-            const requestData = {
-                messages,
-                max_tokens: 150,
-                model: "gpt-3.5-turbo-1106",
-                temperature: 0.5
-            };
-            // Define the headers with your API key
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
-            };
-            // Make the API request using Axios
-            const response = await axios_1.default.post(apiUrl, requestData, { headers });
-            // Return the generated unit tests
-            return response.data.choices[0].message.content.trim();
+function generateAPITest(language, code) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const apiKey = process.env.CHAT_GPT_API_KEY;
+        const apiUrl = "https://api.openai.com/v1/chat/completions";
+        const headers = {
+            "Content-type": "application/json",
+            "Authorization": "Bearer ${apiKey}",
+        };
+        try {
+            const curEditor = vscode.window.activeTextEditor;
+            if (curEditor) {
+                const messages = [
+                    { role: 'system', content: `You are a helpful assistant that generates unit tests for code using ${language}. Make sure to only output code and any text should be documented inside the code.` },
+                    { role: 'user', content: 'Generate unit tests for the following ${language}. Do not give any text around the code:' },
+                    { role: 'assistant', content: code },
+                    { role: 'user', content: `On the first line, specify the file name as tests. and add the corresponding file type to ${language} I need tests to cover different cases. Make sure for each language you do the correct imports.
+				The test file will be in the same directory as the current file. Give documentation for each test case. Include a main that calls on this test suite. This is the file path ${curEditor.document.uri.fsPath}. Import the class from this file. Ensure the code is 
+				executable on first run, mock up all the data yourself, the user should not need to change anything. The program must be runnable and follow Python syntax. Generate as many test cases as you can, complicated and simple ones. Think about what the code is doing logically and 
+				design test cases around the logic, not the actual code.` },
+                ];
+                // Define the data for the API request
+                const requestData = {
+                    messages,
+                    model: "gpt-3.5-turbo-1106",
+                    temperature: 0.5
+                };
+                // Define the headers with your API key
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`,
+                };
+                // Make the API request using Axios
+                const response = yield axios_1.default.post(apiUrl, requestData, { headers });
+                console.log("RESPONSE:", response);
+                // Return the generated unit tests
+                return response.data.choices[0].message.content.trim();
+            }
+            else {
+                throw new Error("No active text editor");
+            }
         }
-        else {
-            throw new Error("No active text editor");
+        catch (error) {
+            console.error('API Error:', error.response ? error.response.data : error.message);
+            throw new Error('Error generating unit tests.');
         }
-    }
-    catch (error) {
-        console.error('API Error:', error.response ? error.response.data : error.message);
-        throw new Error('Error generating unit tests.');
-    }
+    });
 }
 function activate(context) {
     const testCommand = "chatgptest.test";
@@ -131,7 +172,7 @@ function activate(context) {
                 }
                 else {
                     let tests = "";
-                    generateAPITest(userSelection, activeTextEditor.document.getText()).then((response) => {
+                    generateAPITest(userSelection, activeTextEditor.document.getText()).then((response) => __awaiter(this, void 0, void 0, function* () {
                         console.log("Generated unit tests:\n", response);
                         const lines = response.split('\n');
                         // Exclude the first and last lines
@@ -144,14 +185,13 @@ function activate(context) {
                             const curFileURI = curEditor.document.uri;
                             const directoryPath = path.dirname(curFileURI.fsPath);
                             let matchTestFile = middleLines[0].match(/\btests?\.\w+\b/ig);
-                            let filename = "";
-                            if (matchTestFile === null) {
-                                filename = "tests.txt";
-                            }
-                            else {
-                                filename = matchTestFile[0];
-                            }
+                            const filename = yield inputFile();
                             const absolutePath = path.join(directoryPath, filename);
+                            const editor = vscode.window.activeTextEditor;
+                            if (editor) {
+                                const filepath = editor.document.fileName;
+                                exports.globalTestMap.set(absolutePath, filepath);
+                            }
                             if (fs.existsSync(absolutePath)) {
                                 vscode.window.showInformationMessage("This file exists, do you want to overwrite it?", "Yes", "No").then(answer => {
                                     if (answer === "Yes") {
@@ -166,7 +206,7 @@ function activate(context) {
                         }
                         else {
                         }
-                    })
+                    }))
                         .catch((error) => {
                         vscode.window.showInformationMessage("Error:", error.message);
                     });
@@ -175,7 +215,6 @@ function activate(context) {
         }
     };
     let disposable = vscode.commands.registerCommand('chatgptest.helloWorld', () => {
-        console.log("TEST", process.env);
         vscode.window.showInformationMessage('Hello World from chat-gptest!');
     });
     context.subscriptions.push(disposable);
@@ -187,4 +226,3 @@ exports.activate = activate;
 // This method is called when your extension is deactivated
 function deactivate() { }
 exports.deactivate = deactivate;
-//# sourceMappingURL=extension.js.map

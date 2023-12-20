@@ -9,27 +9,95 @@
 	"categories": [
 		"Other"
 	],
+	"publisher": "Edward Song",
+	"icon": "chatgptest.jpg",
+	"galleryBanner": {
+		"color": "#C80000",
+		"theme": "dark"
+	},
 	"activationEvents": [],
 	"main": "./out/extension.js",
 	"contributes": {
+		"walkthroughs": [
+			{
+				"id": "sample",
+				"title": "Sample",
+				"description": "A sample walkthrough",
+				"steps": [
+					{
+						"id": "runcommand",
+						"title": "Run Command",
+						"description": "This step will run a command and check off once it has been run.\n[Run Command](command:getting-started-sample.runCommand)",
+						"media": {
+							"image": "media/image.png",
+							"altText": "Empty image"
+						},
+						"completionEvents": [
+							"onCommand:getting-started-sample.runCommand"
+						]
+					},
+					{
+						"id": "changesetting",
+						"title": "Change Setting",
+						"description": "This step will change a setting and check off when the setting has changed\n[Change Setting](command:getting-started-sample.changeSetting)",
+						"media": {
+							"markdown": "media/markdown.md"
+						},
+						"completionEvents": [
+							"onSettingChanged:getting-started-sample.sampleSetting"
+						]
+					}
+				]
+			}
+		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "chatgptest",
+					"title": "ChatGPTest",
+					"icon": "resources/icon.png"
+				}
+			]
+		},
+		"views": {
+			"chatgptest": [
+				{
+					"id": "package-dependencies",
+					"name": "Dependencies",
+					"view": "scm",
+					"contents": "To get started, navigate to your code file and you can run the command \"Generate Unit Tests\" to generate unit tests for your code or use this button. \n [Generate Unit Tests](command:chatgptest.activeEditor)"
+				},
+				{
+					"id": "package-test",
+					"name": "Outlint",
+					"view": "scm",
+					"contents": "To get started, navigate to your code file and you can run the command \"Generate Unit Tests\" to generate unit tests for your code or use this button. \n [Generate Unit Tests](command:chatgptest.activeEditor)"
+				}
+			]
+		},
 		"commands": [
-      {
-        "command": "chatgptest.helloWorld",
-        "title": "Hello World"
-      },
-      {
-        "command": "chatgptest.test",
-        "title": "Test command"
-      },
-      {
-        "command": "chatgptest.activeEditor",
-        "title": "Get active editor"
-      },
-      {
-        "command": "chatgptest.executePythonTests",
-        "title": "Execute Python Tests"
-      }
-    ]
+			{
+				"command": "chatgptest.helloWorld",
+				"title": "Hello World",
+				"icon": "resources/icon.png"
+			},
+			{
+				"command": "chatgptest.test",
+				"title": "Test command"
+			},
+			{
+				"command": "chatgptest.activeEditor",
+				"title": "Generate Unit Test"
+			},
+			{
+				"command": "chatgptest.executePythonTests",
+				"title": "Execute Python Tests"
+			},
+			{
+				"command": "chatgptest.showWelcome",
+				"title": "Show Welcome Page"
+			}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -46,7 +114,11 @@
 		"typescript": "^5.3.2"
 	},
 	"dependencies": {
+		"@types/react": "^18.2.45",
+		"@types/react-dom": "^18.2.18",
 		"axios": "^1.6.2",
-		"dotenv": "^16.3.1"
+		"dotenv": "^16.3.1",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
 	}
 }
