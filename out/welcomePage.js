@@ -117,6 +117,39 @@ class WelcomePageController {
             while ((testFail = regex.exec(tests)) !== null) {
                 failedTests.push(testFail[1]);
             }
+            // Find strings that start with "traceback" and end with "-" or "="
+            const tracebackBlocks = [];
+            let currentBlock = '';
+            let ranBlock = "";
+            let ran = false;
+            const lines = tests.split('\n');
+            for (const line of lines) {
+                if (line.trim().startsWith('Traceback')) {
+                    // Start a new traceback block
+                    if (currentBlock) {
+                        tracebackBlocks.push(currentBlock);
+                        currentBlock = '';
+                    }
+                }
+                else if (line.trim().startsWith('Ran')) {
+                    // Start a new ran block
+                    if (ranBlock) {
+                        ranBlock = '';
+                    }
+                }
+                currentBlock += line + '\n';
+                ranBlock += line + '\n';
+            }
+            // Add the last block if any
+            if (currentBlock) {
+                tracebackBlocks.push(currentBlock);
+            }
+            if (ranBlock) {
+                ranBlock;
+            }
+            tracebackBlocks.shift();
+            console.log("Trace:", tracebackBlocks);
+            console.log("Ran:", ranBlock);
             const editor = vscode.window.activeTextEditor;
             let chatBlock;
             if (editor && failedTests.length !== 0) {
@@ -136,6 +169,8 @@ class WelcomePageController {
                     <div>
                         <h3>Extracted Function ${index + 1}</h3>
                         <code class="python">${str}</code>
+                        <h4> Failing Error </h4>
+                        <pre><code class="python">${tracebackBlocks[index]}</code></pre>
                     </div>
                 `);
                 }
@@ -157,7 +192,7 @@ class WelcomePageController {
 
             code {
                 font-family: 'Courier New', Courier, monospace;
-                color: white;
+                color: #FFFFFF;
                 padding: 0.5em;
                 border: 1px solid #ddd;
                 border-radius: 4px;
@@ -165,7 +200,7 @@ class WelcomePageController {
             }
             /* Optional: Add different styles for different programming languages */
             code.python {
-                color: #3572A5;
+                color: white;
             }
                 .progress-bar {
                     width: 300px;
@@ -196,6 +231,9 @@ class WelcomePageController {
                 <div class="progress-bar-inner passed" style="width: ${passedPercentage}%;"></div>
                 <div class="progress-bar-inner failed" style="width: ${failedPercentage}%;"></div>
             </div>
+
+            <h2> Execution Results </h2>
+            <code> ${ranBlock} </code>
             
             <p>${passedPercentage.toFixed(2)}% Passed | ${failedPercentage.toFixed(2)}% Failed</p>
 

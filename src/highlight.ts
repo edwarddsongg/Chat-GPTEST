@@ -1,20 +1,15 @@
 import * as vscode from 'vscode';
 import axios from "axios";
 
-async function getChatGPTResponse(fileContent: string, failedTestCases: string[]): Promise<string> {
+async function getChatGPTResponse(prompt: string): Promise<string> {
     const apiKey = process.env.CHAT_GPT_API_KEY;
-    console.log("GPT:", failedTestCases.length);
-
-    // Concatenate failed test cases into a single string
-    const failedTestCasesString = failedTestCases.map(testCase => `Failed Test Case: ${testCase}`).join('\n');
-
+    console.log("Test");
     // Prepare messages for ChatGPT
     const messages = [
-        { role: 'system', content: 'You are a helpful assistant. You are given a list of failed test cases. For each test case find its test case code in the file. Your goal is not to solve the failed test cases but simply display them, giving the view of the failed test case so the developer can see what test case failed given the file. Output the test case code. Only output the code and do not give any words around the code.' },
-        { role: 'user', content:   `This is the list of failed test cases: ${failedTestCasesString}\n` },
-        { role: 'user', content: `Please find the corresponding test cases from this file and display them. Give me the function definition and everything inside: ${fileContent}}` },
+        { role: 'system', content: 'You are a test developer and you write tests for the developer submitting the prompt. You must return runnable code. Do not give any other text, only code.'},
+        { role: 'user', content:   `This is the instructions for what the developer plans to build. Generate test cases for what the user wants to build: ${prompt}\n` },
     ];
-    console.log(failedTestCasesString);
+
     const apiUrl = "https://api.openai.com/v1/chat/completions";
     const response = await axios.post(
         apiUrl,
@@ -31,25 +26,50 @@ async function getChatGPTResponse(fileContent: string, failedTestCases: string[]
     );
 
     // Extract the response from ChatGPT
-    const chatGPTResponse = response.data.choices[0].message.content;
+    let chatGPTResponse = response.data.choices[0].message.content;
+
+    // Split the response into lines
+    let lines = chatGPTResponse.split('\n');
+
+    // Filter out lines starting with triple backticks
+    lines = lines.filter(line => !line.startsWith('```'));
+    console.log(lines);
+    // Rejoin the remaining lines
+    chatGPTResponse = lines.join('\n');
+
     console.log(chatGPTResponse);
     return chatGPTResponse;
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  let disposable = vscode.commands.registerCommand('chatgptest.followTest', () => {
-    const editor = vscode.window.activeTextEditor;
+    let disposable = vscode.commands.registerCommand('chatgptest.followTest', async () => {
+        const editor = vscode.window.activeTextEditor;
 
-    if (editor) {
-      const selectedText = editor.document.getText(editor.selection);
+        if (editor) {
+            const selectedText = editor.document.getText(editor.selection);
 
-      // Run your command on the selectedText
-      console.log('Selected Text:', selectedText);
-      // Add your logic to run a command on the highlighted code
-    }
-  });
+            // Run your command on the selectedText
+            
+            const chatGPTResponse = await getChatGPTResponse(selectedText);
+            const trimmedResponse = chatGPTResponse.replace(/```[^]*?```/gs, '');
+            console.log('Selected Text:', trimmedResponse);
+            if (editor) {
+                const selectedText = editor.document.getText(editor.selection);
+    
+                // Run your command on the selectedText
+                console.log('Selected Text:', selectedText);
+                const chatGPTResponse = await getChatGPTResponse(selectedText);
+              
+                const edit = new vscode.WorkspaceEdit();
+                const position = new vscode.Position(editor.document.lineCount, 0);
+                edit.insert(editor.document.uri, position, `\n${chatGPTResponse}\n`);
+    
+                await vscode.workspace.applyEdit(edit);
+            }
+        }
+    });
 
-  context.subscriptions.push(disposable);
+    context.subscriptions.push(disposable);
 }
 
 export function deactivate() {}

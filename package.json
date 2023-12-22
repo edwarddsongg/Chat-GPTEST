@@ -15,10 +15,6 @@
 		"color": "#C80000",
 		"theme": "dark"
 	},
-	"activationEvents": [
-		"onCommand:chatgptest.activeEditor",
-		"onCommand:chatgptest.followTest"
-	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"viewsContainers": {
