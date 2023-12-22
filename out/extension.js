@@ -46,6 +46,7 @@ const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const execute_1 = __importDefault(require("./execute"));
 /// <reference path="./globals.d.ts" />
+const highlight_1 = require("./highlight");
 dotenv.config({ path: '/Users/edwardsong/Documents/CHAT-GPTEST/.env' });
 exports.globalTestMap = new Map();
 // Initialize the Map
@@ -150,6 +151,7 @@ function generateAPITest(language, code) {
     });
 }
 function activate(context) {
+    (0, highlight_1.activate)(context);
     const testCommand = "chatgptest.test";
     console.log("TEST", process.env);
     const activeEditorCommand = "chatgptest.activeEditor";
@@ -224,5 +226,7 @@ function activate(context) {
 }
 exports.activate = activate;
 // This method is called when your extension is deactivated
-function deactivate() { }
+function deactivate() {
+    (0, highlight_1.deactivate)();
+}
 exports.deactivate = deactivate;
